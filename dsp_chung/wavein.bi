@@ -176,7 +176,7 @@ Declare Sub mysubsample()
         dim as short ptr pNewSamples  = cptr(short ptr,pBuffer->lpData)
         nSamples = pBuffer->dwBytesRecorded\wfex.nBlockAlign
         RtlCopyMemory(pSamples,pNewSamples,pBuffer->dwBytesRecorded)
-        errtext="new samples available"
+        errtext="wavein ok"'new samples available"
         ' !!! now pSamples points to your fresh recorded audio data !!!
         mynsamples=nsamples*nchannel
         mypsamples=psamples
