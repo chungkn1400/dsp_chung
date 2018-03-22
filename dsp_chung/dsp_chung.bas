@@ -21,7 +21,7 @@ Var hprocess=GetCurrentProcess()
 Var retc=SetpriorityClass (hprocess, HIGH_PRIORITY_CLASS)
 
 Dim Shared As Integer winx,winy,windx,windy,file,i,j,k,n,p
-Dim Shared As Single gain
+Dim Shared As Single gain,testgain=1
 Dim Shared As Single automod=0.5,lowmod=1,krevmod=1,treverba,treverbb,kreverba,kreverbb,decay
 Dim Shared As Integer autovol=2,reverb=1,noisered=0,bypass=0,mono=0,remove50,antilarsen=1
 Dim Shared As String resp
@@ -69,6 +69,8 @@ remove50=0
 If Not Eof(file) Then Line Input #file,ficin:remove50=Val(ficin)
 antilarsen=0
 If Not Eof(file) Then Line Input #file,ficin:antilarsen=Val(ficin)
+testgain=1
+If Not Eof(file) Then Line Input #file,ficin:testgain=max(0.001,min(1.0,Val(ficin)))
 Close #file
 
 Dim Shared As Integer quit,restart,play,ttestloop
@@ -97,14 +99,14 @@ Dim As Integer i
 getcomboindex("win.wavein",i)
 mydev=i-2 '-1=mapper
 quit=1:restart=1
-ttestloop=-1
+ttestloop=1999
 End Sub
 Sub subwaveout()
 Dim As Integer i
 getcomboindex("win.waveout",i)
 mydevout=i-2 '-1=mapper
 quit=1:restart=1
-ttestloop=-1
+ttestloop=1999
 End Sub
 Sub subgain()
 Dim As Integer i
@@ -266,8 +268,9 @@ EndIf
 End Sub
 Declare Sub testloop()
 setreverb()
+Const As Single pi=2*ASin(1)
 Dim Shared As Double timemsg,timeinit,timexback,dtxback
-Dim Shared As Integer okout,freeout
+Dim Shared As Integer okout,freeout,tinput,toutput
 Dim Shared As Single mypeek,mypeekin,level,xback0,xback1,xback2,xbackout,levelout
 
 loadplugins()
@@ -299,6 +302,7 @@ checkbox("win.noise","noisered",@subnoise,10,230,85,20)
 checkbox("win.remove50","remove50hz",@subremove50,10,251,100,20)
 checkbox("win.antilarsen","antilarsen",@subantilarsen,120,230,85,20)
 button("win.testloop","testloop",@subtestloop,120,251,67,20)
+statictext("win.textloop","(adjust gain)",190,254,97,20)
 combobox("win.treverba",@subtreverba,160,95,90,500)
 combobox("win.kreverba",@subkreverba,160,125,90,500)
 combobox("win.treverbb",@subtreverbb,265,95,90,500)
@@ -439,6 +443,7 @@ play=1:printgui("win.play","stop")
 
 lrestart:
 restart=0:quit=0
+If ttestloop=1999 Then ttestloop=199
 If auxtest<0.1 And ttestloop=-1 Then ttestloop=1
 If mydevout>=numdevout Then mydevout=-1
 If mydev>=numdev Then mydev=-1
@@ -453,6 +458,8 @@ gain=gain0
 'guinotice "now    volume:" & mixer.WaveinVolume
 
 timeinit=Timer
+tinput=1
+toutput=1
 
 While quit=0 
 	guiscan
@@ -479,6 +486,7 @@ While quit=0
     printguih(winmsgh,msg)
     var vux=Int(55*level)
     'vux=Int(55*Abs(levelout/32700))
+    If play=0 Then vux=1
     If Abs(xback0)<0.001 Then
     	Line vuoutbuffer,(vux,0)-(55,15),RGB(250,250,250),bf
     Else 
@@ -527,6 +535,7 @@ Print #file,mono
 Print #file,noisered
 Print #file,remove50
 Print #file,antilarsen
+Print #file,testgain
 Close #file
 
 guiclose()
@@ -535,9 +544,11 @@ guiquit()
 End
 
 Dim Shared As Double timetest,timepeek
-Sub testloop()
+Sub testloop0()
 guiconfirm("test loop ?","confirm",resp)
-If resp<>"yes" Then Exit Sub 
+If resp<>"yes" Then
+	Exit Sub 
+EndIf
 Var play0=play
 Var gain0=gain
 mypeekin=0
@@ -584,6 +595,63 @@ EndIf
 guinotice "ok"
 gain=gain0
 End Sub
+Sub testloop()
+tinput=0:toutput=0	
+guiconfirm("test loop ?","confirm",resp)
+tinput=1:toutput=1	
+If resp<>"yes" Then Exit Sub 
+Var play0=play
+Var gain0=gain
+tinput=0:toutput=0:Sleep 1000
+mypeekin=0
+gain=0
+play=1
+tinput=0
+toutput=0
+mypeekin=0
+timetest=Timer 
+While quit=0 And guitestkey(vk_escape)=0
+	guiscan
+	Sleep 20
+	If mypeekin>2000 Then
+		guinotice "stop input before !"
+		gain=gain0:play=play0:tinput=1:toutput=1
+		Exit Sub 
+	EndIf
+	If Timer>timetest+0.5 Then Exit While
+Wend
+gain=1
+tinput=99
+toutput=99
+mypeekin=0
+timetest=Timer 
+While quit=0 And guitestkey(vk_escape)=0
+	guiscan
+	Sleep 20
+	If mypeekin>2000 Then
+		Sleep 300
+		Var mypeekin0=mypeekin
+		tinput=0:toutput=0
+		testgain=max(0.001,min(1.0,2000/(0.1+mypeekin0)))
+		guinotice "warning loop ! "+Str(Int(mypeekin0))+"/"+Left(Str(testgain),5)
+		tinput=0:toutput=0:Sleep 1000
+		guiconfirm("continue ?","confirm",resp)
+		If resp<>"yes" Then
+			toutput=0
+		Else
+			toutput=1
+		EndIf
+		gain=gain0:play=play0:tinput=1':toutput=1
+		Exit Sub 
+	EndIf
+	If Timer>timetest+1 Then Exit While
+Wend
+tinput=0:toutput=0
+guinotice "ok "+Str(Int(mypeekin))+"/"+Left(Str(testgain),5)
+tinput=0:toutput=0:Sleep 1000
+testgain=1
+gain=gain0:play=play0:tinput=1:toutput=1
+End Sub 
 Declare Sub Myprocback()
 Declare Sub setautovol()
 declare sub procspeed()
@@ -620,6 +688,8 @@ If play=1 Then
     	iback=k
     	If (iback And 1)=0 Then timexback+=dtxback
     	If ttestloop<>0 Then mypeekin=max(mypeekin,Abs(xback))
+    	If tinput=0 Then xback=0
+    	If tinput=99 Then xback=8000*Cos(2*pi*timexback*500)'500hz
     	If ttestloop=0 Then
     		Myprocback()
     	EndIf
@@ -635,15 +705,18 @@ If play=1 Then
     	xbackold0=xbackold
     	xbackold=xback
     	If mono=1 Then xback=(xbackold+xbackold0)*0.5
-    	Var x30000=30000.0*gain*gain
-    	If Abs(xback*gain)>x30000 Then
+    	Var tgain=gain*testgain
+    	Var x30000=30000.0*tgain*tgain
+    	If Abs(xback*tgain)>x30000 Then
     		Var gainx=x30000/Abs(xback)
     		gain2+=(gainx-gain2)*0.01
     		gain2=min(gainx*1.07,gain2)
     	Else 
-    		gain2+=(gain-gain2)*0.0003
+    		gain2+=(tgain-gain2)*0.0003
     	EndIf
+    	If toutput=99 Then gain2=gain
     	xback=max(-32700.0,min(32700.0,xback*gain2))
+    	If toutput=0 Then xback=0
     	xbackout=xback
     	'levelout+=(Abs(xbackout)-levelout)*0.001
     	'auxvar2=int(gain2*1000)/1000
@@ -651,7 +724,7 @@ If play=1 Then
     Next k
     If ttestloop=0 Then setautovol()
     waveOutPrepareHeader(.hDevice,.Buffers[.ibuffer],sizeof(WAVEHDR))
-    waveOutWrite(.hDevice,.Buffers[.ibuffer],sizeof(WAVEHDR))
+    waveOutWrite(.hDevice,.Buffers[.ibuffer],sizeof(WAVEHDR)) 
     okout=1:Exit For 
   EndIf 
  Next i
@@ -913,7 +986,6 @@ Else
 EndIf
 xback*=gaindecay
 End Sub
-Const As Single pi=2*ASin(1)
 Const As Integer nf=20000,n2=40
 Dim Shared As Single L,C,R,Z,f000,dt,w,t,v(n2,nf),dv(n2,nf),u(n2,nf),du(n2,nf)',du2(n2,nf),avgu(nf),avguu
 'Dim Shared As Single ii(n2,nf),dii(n2,nf),dii2(n2,nf),ri(n2,nf),dri(n2,nf),dri2(n2,nf)
