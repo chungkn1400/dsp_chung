@@ -733,7 +733,8 @@ End With
 End Sub
 dim shared as single volout0=1.7,volout=1.7,volout2,kvolout2,klevel2=1'1.80
 Dim Shared As Single level2=0.8,tlevel=400,klevel=1,level3=0.8,npeek,kframe=1
-Dim Shared As Integer nsamples,ndata,peekx,peekx2
+Dim Shared As Integer nsamples,ndata
+Dim shared As Single peekx,peekx2
 Dim Shared As Double timelevel,timelevel2
 Dim Shared As Single volcanal=127,volcanal0=127
 peekx=1:peekx2=1
@@ -1200,7 +1201,7 @@ End Sub
 Dim Shared As Single xlow(9),xxlow(9),yxlow(9),yxxlow(9)
 Sub removelow()
 Dim As Integer i
-Var i2=3,kx=0.005
+Var i2=3,kx=0.0033
 If iback And 1 Then
 	For i=i2 To 1 Step -1
 		xlow(i)+=(xxlow(i-1)-xlow(i))*kx'0.002'88hz
