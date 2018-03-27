@@ -656,6 +656,7 @@ Declare Sub Myprocback()
 Declare Sub setautovol()
 declare sub procspeed()
 Dim Shared As Single xback,xbackold,xbackold0,speed=1,gain2=1,avggain=1,avgxback=1,avgxback0=1
+Dim Shared As Single xback00,xback01,dxback00,dxback01
 Dim Shared As Integer iback
 Sub mysubsample()
 If quit=1 Then Exit Sub
@@ -780,7 +781,9 @@ Sub setlevel()
   If level3>1.12*level2 Then level3=1.12*level2
   'volout=1.8
   klevel=volout*0.5/level3 'target level=volout*0.5
-  If klevel>5 Then klevel=5
+  'If klevel>5 Then klevel=5
+  var gain5=min(5.0,0.8*gain2/testgain)
+  If klevel>gain5 Then klevel=gain5
   peekx=1:peekx2=1
   If autovol=2 Then 
     volout2=volout*64*256*0.83 'for compressor
@@ -800,6 +803,8 @@ Sub setlevel()
   	 EndIf 	
   EndIf 
   klevel2=volout/(volout-(volout-volout2/(64*256))*kvolout2)
+  'If klevel2>5 Then klevel2=5
+  If klevel2>gain5 Then klevel2=gain5
 End Sub
 Sub setlevel2()
   If timelevel<timelevel2 Then timelevel=timelevel2
@@ -841,6 +846,8 @@ Sub setlevel2()
   'klevel=volout*0.5/level3 'target level=volout*0.5
   'If klevel>5 Then klevel=5
   klevel=1
+  var gain5=min(5.0,0.8*gain2/testgain)
+  If klevel>gain5 Then klevel=gain5
   peekx=1:peekx2=1
   If autovol=2+4 Then 
     volout2=volout*64*256*0.83 'for compressor
@@ -860,6 +867,8 @@ Sub setlevel2()
   	 EndIf 	
   EndIf 
   klevel2=volout/(volout-(volout-volout2/(64*256))*kvolout2)
+  'If klevel2>5 Then klevel2=5
+  If klevel2>gain5 Then klevel2=gain5
 End Sub
 'Dim Shared As fbs_sample xback  'equ short           	
 'Dim Shared As Integer xback '32bits 
@@ -948,7 +957,7 @@ Sub noisereduce()
 If timenoise<1 Then timenoise=Timer
 xnoise+=(Abs(xback)-xnoise)*0.0002
 If xnoise<800 And Abs(xback)<2000 Then
-	If Timer>timenoise+1 Then xback=0
+	If Timer>timenoise+3 Then xback=0
 Else 	
 	timenoise=Timer 
 EndIf
@@ -956,14 +965,18 @@ End Sub
 Const As Integer ndecay=800000
 Dim Shared As Integer idecay,didecay,jdecay
 Dim Shared As Single xdecay(ndecay),xxdecay,peekdecay,gaindecay
+Dim Shared As Double timedecay
 Sub subprocdecay()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
 xxdecay+=(Abs(xback)-xxdecay)*0.001
-If Abs(xback)>xxdecay Then xxdecay=Abs(xback)+100
+If Abs(xback)>xxdecay Then
+	xxdecay=Abs(xback)+100
+	timedecay=Timer 
+EndIf
 xdecay(idecay)=xxdecay	
 If decay<1 Then decay=1
-If peekdecay<xxdecay-200 Then
+If peekdecay<xxdecay-200 Or Timer>timedecay+2 Then
 	peekdecay=xxdecay
 	didecay=0
 Else
@@ -974,13 +987,14 @@ EndIf
 If didecay>1 Then
 	jdecay=idecay-didecay/decay
 	If jdecay<1 Then jdecay=ndecay
-	Var gaindecay2=max(1.0,min(4.0,max(400.0,peekdecay-xxdecay)/max(400.0,peekdecay-xdecay(jdecay))))
+	Var gain4=min(4.0,0.8*gain2/testgain)
+	Var gaindecay2=max(1.0,min(gain4,max(400.0,peekdecay-xxdecay)/max(400.0,peekdecay-xdecay(jdecay))))
 	'Var gaindecay1=max(0.1,min(4.0,max(400.0,xdecay(jdecay))/max(400.0,xxdecay)))
 	'gaindecay2=max(gaindecay1,gaindecay2)
 	If gaindecay<gaindecay2 Then
-		gaindecay+=(gaindecay2-gaindecay)*0.002
+		gaindecay+=(gaindecay2-gaindecay)*0.004
 	Else 	
-		gaindecay+=(gaindecay2-gaindecay)*0.002
+		gaindecay+=(gaindecay2-gaindecay)*0.003
 	EndIf
 Else
 	gaindecay+=(1-gaindecay)*0.002
@@ -1166,7 +1180,7 @@ Next
 tsetnoise=0
 '/	
 End Sub
-Const As Integer nspeed=90000'1s
+Const As Integer nspeed=9000'0.1s
 Const As Integer nspeed2=nspeed/3,nspeed4=samplerate/30
 Dim Shared As Integer ispeed,ispeed21
 Dim Shared As Single ispeed2
@@ -1311,14 +1325,16 @@ Dim As Integer i,j,k
 		  'xback*=klevel*((1.0-automod)+automod*Abs(xback)/(32700*max(0.1,level)))
 		  If autovol>=2 Then
           'volout2=volout*64*256*0.8
-          'kvolout2=0.45 	
+          'kvolout2=0.45 
 			 If xback>volout2 Then xback-=(xback-volout2)*kvolout2
 			 If xback<-volout2 Then xback-=(xback+volout2)*kvolout2
 			 xback*=klevel2'volout/(volout-(volout-volout2/(64*256))*kvolout2)
 		  EndIf
 		'EndIf
 		If reverb>=1 Then subreverb()
-		If decay>1.0 Then subprocdecay()
+		If decay>1.0 Then
+			subprocdecay()
+		EndIf
 		'If equal=1 Then subequal()
 		'xback*=volout3
 		If pluginproc<>0 Then xback=pluginproc(xback)
