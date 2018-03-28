@@ -23,7 +23,7 @@ Var retc=SetpriorityClass (hprocess, HIGH_PRIORITY_CLASS)
 Dim Shared As Integer winx,winy,windx,windy,file,i,j,k,n,p
 Dim Shared As Single gain,testgain=1
 Dim Shared As Single automod=0.5,lowmod=1,krevmod=1,treverba,treverbb,kreverba,kreverbb,decay
-Dim Shared As Integer autovol=2,reverb=1,noisered=0,bypass=0,mono=0,remove50,antilarsen=1
+Dim Shared As Integer autovol=2,reverb=1,noisered=0,bypass=0,mono=0,remove50,antilarsen=1,icolor
 Dim Shared As String resp
 
 Dim As String ficin
@@ -71,6 +71,8 @@ antilarsen=0
 If Not Eof(file) Then Line Input #file,ficin:antilarsen=Val(ficin)
 testgain=1
 If Not Eof(file) Then Line Input #file,ficin:testgain=max(0.001,min(1.0,Val(ficin)))
+icolor=0
+If Not Eof(file) Then Line Input #file,ficin:icolor=Val(ficin)
 Close #file
 
 Dim Shared As Integer quit,restart,play,ttestloop
@@ -80,6 +82,16 @@ End Sub
 Sub submsg()
 End Sub
 Sub subedittext()
+End Sub
+Sub subcolor2()
+If icolor=0 Then guibackgroundcolor(50,255,50)
+If icolor=1 Then guibackgroundcolor(255,255,50)
+If icolor=2 Then guibackgroundcolor(255,49,52)
+If icolor=3 Then guibackgroundcolor(50,60,255)	
+End Sub
+Sub subcolor()
+icolor=(icolor+1)Mod 4
+quit=1:restart=2
 End Sub
 Sub subplay()
 If ttestloop<>0 Then Exit Sub 
@@ -276,6 +288,8 @@ Dim Shared As Single mypeek,mypeekin,level,xback0,xback1,xback2,xbackout,levelou
 loadplugins()
 
 ' Program start
+lrestart2:
+If restart=2 Then restart=22
 Dim Shared As Integer wx,wy
 ScreenInfo wx,wy
 winx=max2(0,min2(wx-500,winx))
@@ -284,6 +298,7 @@ guibackgroundcolor(50,255,50)
 guiedittextbackcolor(220,170,255)
 guiedittextinkcolor(0,0,100)
 guistatictextinkcolor(50,50,100)
+subcolor2()
 button("win.button1","quit",@subquit,10,10,60,24)
 combobox("win.wavein",@subwavein,90,10,256,200)
 combobox("win.buffersize",@subbuffersize,356,10,80,500)
@@ -302,7 +317,8 @@ checkbox("win.noise","noisered",@subnoise,10,230,85,20)
 checkbox("win.remove50","remove50hz",@subremove50,10,251,100,20)
 checkbox("win.antilarsen","antilarsen",@subantilarsen,120,230,85,20)
 button("win.testloop","testloop",@subtestloop,120,251,67,20)
-statictext("win.textloop","(adjust gain)",190,254,97,20)
+statictext("win.textloop","(adjust gain)",190,254,90,20)
+button("win.color","color",@subcolor,287,253,42,18)
 combobox("win.treverba",@subtreverba,160,95,90,500)
 combobox("win.kreverba",@subkreverba,160,125,90,500)
 combobox("win.treverbb",@subtreverbb,265,95,90,500)
@@ -457,6 +473,7 @@ Sleep 1000
 gain=gain0
 'guinotice "now    volume:" & mixer.WaveinVolume
 
+mainloop:
 timeinit=Timer
 tinput=1
 toutput=1
@@ -509,6 +526,12 @@ mywaveout.wclose()
 Sleep 1000
 
 If restart=1 Then restart=0:quit=0:Sleep 1000:GoTo lrestart
+If restart=2 Then
+	restart=22:quit=0
+	guiclosewindow("win")
+	guireset()
+	Sleep 1000:GoTo lrestart2
+EndIf
 
 closeplugins()
 
@@ -536,6 +559,7 @@ Print #file,noisered
 Print #file,remove50
 Print #file,antilarsen
 Print #file,testgain
+Print #file,icolor
 Close #file
 
 guiclose()
@@ -963,10 +987,63 @@ Else
 EndIf
 End Sub
 Const As Integer ndecay=800000
-Dim Shared As Integer idecay,didecay,jdecay
-Dim Shared As Single xdecay(ndecay),xxdecay,peekdecay,gaindecay
+Dim Shared As Integer idecay,didecay,jdecay,irevdecay,irevdecay2
+Dim Shared As double xdecay(ndecay),xxdecay,xydecay,peekdecay,gaindecay,gainrevdecay=0.5,xrevdecay(ndecay)
 Dim Shared As Double timedecay
 Sub subprocdecay()
+Dim As Integer i,j,k
+idecay+=1:If idecay>ndecay Then idecay=1
+Var xback00=xback
+'gainrevdecay=0.4
+irevdecay=idecay-10000:If irevdecay<1 Then irevdecay+=ndecay
+irevdecay2=idecay-14000:If irevdecay2<1 Then irevdecay2+=ndecay
+xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
+xydecay+=(xback-xydecay)*0.5
+xxdecay+=(Abs(xydecay)-xxdecay)*0.001
+'Var k100=100.0'max(100.0,Abs(xback)*0.01)
+If Abs(xback)>xxdecay+200 Then
+	xxdecay=Abs(xback)+100
+	timedecay=Timer
+EndIf
+xdecay(idecay)=xxdecay	
+If decay<1 Then decay=1
+If peekdecay<xxdecay-150 Or Timer>timedecay+2 Then
+	peekdecay=xxdecay
+	didecay=0
+Else
+	peekdecay-=0.03*(peekdecay*0.0001/decay)
+	didecay+=1
+	If didecay>ndecay-2 Then didecay=ndecay-2
+EndIf
+Var gain4=min(3.0,0.8/testgain),k400=400.0
+If didecay>0 Then
+	jdecay=idecay-didecay/decay
+	If jdecay<1 Then jdecay=ndecay
+	Var gaindecay2=max(1.0,min(gain4,max(k400,peekdecay-xxdecay)/max(k400,peekdecay-xdecay(jdecay))))
+	'Var gaindecay1=max(0.1,min(4.0,max(400.0,xdecay(jdecay))/max(400.0,xxdecay)))
+	'gaindecay2=max(gaindecay1,gaindecay2)
+	If gaindecay<gaindecay2 Then
+		gaindecay+=(gaindecay2-gaindecay)*0.004
+	Else 	
+		gaindecay+=(gaindecay2-gaindecay)*0.003
+	EndIf
+Else
+	gaindecay+=(1-gaindecay)*0.003
+EndIf
+'If gaindecay>1.2 Then
+'	gainrevdecay=min(0.7,gainrevdecay+0.000001)
+'ElseIf gaindecay<1.1 Then 	
+'	gainrevdecay=max(0.0,gainrevdecay-0.000001)
+'EndIf
+If gaindecay>1.3 Then
+	xback=xback*0.75+(gaindecay-0.75)*xrevdecay(idecay)
+Else
+	Var k75=(gaindecay-1)/(1.3-1)
+	xback=xback*gaindecay*(1-k75)+k75*(xback*0.75+(gaindecay-0.75)*xrevdecay(idecay))
+EndIf
+'xback*=gaindecay
+End Sub
+/'Sub subprocdecay_old()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
 xxdecay+=(Abs(xback)-xxdecay)*0.001
@@ -1000,7 +1077,7 @@ Else
 	gaindecay+=(1-gaindecay)*0.002
 EndIf
 xback*=gaindecay
-End Sub
+End Sub '/
 Const As Integer nf=20000,n2=40
 Dim Shared As Single L,C,R,Z,f000,dt,w,t,v(n2,nf),dv(n2,nf),u(n2,nf),du(n2,nf)',du2(n2,nf),avgu(nf),avguu
 'Dim Shared As Single ii(n2,nf),dii(n2,nf),dii2(n2,nf),ri(n2,nf),dri(n2,nf),dri2(n2,nf)
@@ -1332,9 +1409,6 @@ Dim As Integer i,j,k
 		  EndIf
 		'EndIf
 		If reverb>=1 Then subreverb()
-		If decay>1.0 Then
-			subprocdecay()
-		EndIf
 		'If equal=1 Then subequal()
 		'xback*=volout3
 		If pluginproc<>0 Then xback=pluginproc(xback)
@@ -1342,6 +1416,9 @@ Dim As Integer i,j,k
 		If plugin3proc<>0 Then xback=plugin3proc(xback)
 		If plugin4proc<>0 Then xback=plugin4proc(xback)
 		
+		If decay>1.0 Then
+			subprocdecay()
+		EndIf
 		If Abs(xback)>peekx2 Then peekx2=Abs(xback)
 		If xback>32767 Then xback=32767
 		If xback<-32767 Then xback=-32767
