@@ -989,7 +989,7 @@ End Sub
 Const As Integer ndecay=800000
 Dim Shared As Integer idecay,didecay,jdecay,irevdecay,irevdecay2,irevdecay0
 Dim Shared As double xdecay(ndecay),xxdecay,xydecay,peekdecay,gaindecay,gainrevdecay=0.5,xrevdecay(ndecay),xdecayback
-Dim Shared As Double timedecay
+Dim Shared As Double timedecay,xxdecay0
 Sub subprocdecay()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
@@ -1003,6 +1003,7 @@ xrevdecay(idecay)=xback
 xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 'xydecay+=(xdecayback-xydecay)*0.5
 xydecay+=(xback-xydecay)*0.5
+xxdecay0+=(Abs(xydecay)-xxdecay0)*0.0001
 xxdecay+=(max(Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay)*0.001
 'xxdecay+=(Abs(xydecay)-xxdecay)*0.001
 'Var k100=100.0'max(100.0,Abs(xback)*0.01)
@@ -1012,7 +1013,7 @@ If Abs(xback)>xxdecay+200 Then
 EndIf
 xdecay(idecay)=xxdecay	
 If decay<1 Then decay=1
-If peekdecay<xxdecay-150 Or Timer>timedecay+7 Then
+If peekdecay<xxdecay-150 Or Timer>timedecay+7 Or xxdecay0<xxdecay-400 Then
 	peekdecay=xxdecay
 	didecay=0
 Else
@@ -1028,6 +1029,7 @@ If didecay>0 Then
 	Var gaindecay2=max(1.0,min(gain4,max(k400,peekdecay-xxdecay)/max(k400,peekdecay-xdecay(jdecay))))
 	'Var gaindecay1=max(0.1,min(4.0,max(400.0,xdecay(jdecay))/max(400.0,xxdecay)))
 	'gaindecay2=max(gaindecay1,gaindecay2)
+	If xxdecay0<300 Then gaindecay2=1
 	If gaindecay<gaindecay2 Then
 		gaindecay+=(gaindecay2-gaindecay)*0.004
 	Else 	
