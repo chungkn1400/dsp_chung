@@ -996,13 +996,14 @@ idecay+=1:If idecay>ndecay Then idecay=1
 Var xback00=xback
 'gainrevdecay=0.4
 irevdecay0=idecay-5000:If irevdecay0<1 Then irevdecay0+=ndecay
-irevdecay=idecay-15000:If irevdecay<1 Then irevdecay+=ndecay
-irevdecay2=idecay-19000:If irevdecay2<1 Then irevdecay2+=ndecay
+irevdecay=idecay-5000-20000:If irevdecay<1 Then irevdecay+=ndecay
+irevdecay2=idecay-5000-28000:If irevdecay2<1 Then irevdecay2+=ndecay
 'xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 xrevdecay(idecay)=xback
 xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 xydecay+=(xback-xydecay)*0.5
-xxdecay+=(Abs(xydecay)-xxdecay)*0.001
+xxdecay+=(max(Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay)*0.001
+'xxdecay+=(Abs(xydecay)-xxdecay)*0.001
 'Var k100=100.0'max(100.0,Abs(xback)*0.01)
 If Abs(xback)>xxdecay+200 Then
 	xxdecay=Abs(xback)+100
@@ -1010,7 +1011,7 @@ If Abs(xback)>xxdecay+200 Then
 EndIf
 xdecay(idecay)=xxdecay	
 If decay<1 Then decay=1
-If peekdecay<xxdecay-150 Or Timer>timedecay+2 Then
+If peekdecay<xxdecay-150 Or Timer>timedecay+7 Then
 	peekdecay=xxdecay
 	didecay=0
 Else
@@ -1018,10 +1019,11 @@ Else
 	didecay+=1
 	If didecay>ndecay-2 Then didecay=ndecay-2
 EndIf
-Var gain4=min(3.0,0.8/testgain),k400=400.0
+Var gain4=min(3.0,0.8/testgain),k400=100.0
 If didecay>0 Then
-	jdecay=idecay-didecay/decay
-	If jdecay<1 Then jdecay=ndecay
+	'jdecay=idecay-didecay/decay
+	jdecay=idecay-didecay*(decay-1)/decay
+	If jdecay<1 Then jdecay+=ndecay
 	Var gaindecay2=max(1.0,min(gain4,max(k400,peekdecay-xxdecay)/max(k400,peekdecay-xdecay(jdecay))))
 	'Var gaindecay1=max(0.1,min(4.0,max(400.0,xdecay(jdecay))/max(400.0,xxdecay)))
 	'gaindecay2=max(gaindecay1,gaindecay2)
