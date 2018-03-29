@@ -1001,7 +1001,8 @@ irevdecay2=idecay-5000-28000:If irevdecay2<1 Then irevdecay2+=ndecay
 'xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 xrevdecay(idecay)=xback
 xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
-xydecay+=(xdecayback-xydecay)*0.5
+'xydecay+=(xdecayback-xydecay)*0.5
+xydecay+=(xback-xydecay)*0.5
 xxdecay+=(max(Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay)*0.001
 'xxdecay+=(Abs(xydecay)-xxdecay)*0.001
 'Var k100=100.0'max(100.0,Abs(xback)*0.01)
@@ -1048,7 +1049,7 @@ Else
 	'xback=xback*gaindecay*(1-k75)+k75*(xback*0.75+(gaindecay-0.75)*xrevdecay(idecay))
 	xback=xback*gaindecay*(1-k75)+k75*(xback*0.75+(gaindecay-0.75)*xrevdecay(irevdecay0))
 EndIf
-xdecayback=xback
+'xdecayback=xback
 'xback*=gaindecay
 End Sub
 /'Sub subprocdecay_old()
