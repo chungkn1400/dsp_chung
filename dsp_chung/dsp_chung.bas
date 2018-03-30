@@ -989,8 +989,81 @@ End Sub
 Const As Integer ndecay=1400000
 Dim Shared As Integer idecay,didecay,jdecay,irevdecay,irevdecay2,irevdecay0
 Dim Shared As double xdecay(ndecay),xxdecay,xydecay,peekdecay,gaindecay,gainrevdecay=0.5,xrevdecay(ndecay),xdecayback
-Dim Shared As Double timedecay,xxdecay0,k1000=1000,kdecay=1
+Dim Shared As Double timedecay,xxdecay0,k1000=1000,kdecay=1,xxdecay1
 Sub subprocdecay()
+Dim As Integer i,j,k
+idecay+=1:If idecay>ndecay Then idecay=1
+Var xback00=xback
+'gainrevdecay=0.4
+irevdecay0=idecay-5000:If irevdecay0<1 Then irevdecay0+=ndecay
+irevdecay=idecay-5000-20000:If irevdecay<1 Then irevdecay+=ndecay
+irevdecay2=idecay-5000-28000:If irevdecay2<1 Then irevdecay2+=ndecay
+'xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
+xrevdecay(idecay)=xback
+xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
+'xydecay+=(xdecayback-xydecay)*0.5
+xydecay+=(xback-xydecay)*0.5
+xxdecay0+=(Abs(xydecay)-xxdecay0)*0.001
+xxdecay1+=(max(kdecay*Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay1)*0.001
+xxdecay+=(xxdecay1-xxdecay)*0.003
+'xxdecay+=(Abs(xydecay)-xxdecay)*0.001
+'Var k100=100.0'max(100.0,Abs(xback)*0.01)
+If Abs(xback)>xxdecay+200 Then
+	xxdecay1=Abs(xback)+100
+	xxdecay=xxdecay1
+	timedecay=Timexback
+	kdecay=1
+EndIf
+xdecay(idecay)=xxdecay	
+If decay<1 Then decay=1
+If peekdecay<xxdecay-150 Or Timexback>timedecay+7 Then
+	peekdecay=xxdecay
+	didecay=0
+Else
+	peekdecay-=0.03*(peekdecay*0.0001/decay)
+	didecay+=1
+	If didecay>ndecay-2 Then didecay=ndecay-2
+EndIf
+Var gain4=min(3.0,0.8/testgain),k400=100.0
+If didecay>100 Then
+	'jdecay=idecay-didecay/decay
+	jdecay=idecay-didecay*(decay-1)/decay
+	If jdecay<1 Then jdecay+=ndecay
+	Var gaindecay2=max(1.0,min(gain4,max(k400,peekdecay-xxdecay)/max(k400,peekdecay-xdecay(jdecay))))
+	'Var gaindecay1=max(0.1,min(4.0,max(400.0,xdecay(jdecay))/max(400.0,xxdecay)))
+	'gaindecay2=max(gaindecay1,gaindecay2)
+	If xxdecay0<k1000 Then
+		k1000=2000
+      gaindecay2=1
+      kdecay=max(0.0,kdecay-0.004)
+	Else
+		k1000=1000
+ 	EndIf
+	If gaindecay<gaindecay2 Then
+		gaindecay+=(gaindecay2-gaindecay)*0.004
+	Else 	
+		gaindecay+=(gaindecay2-gaindecay)*0.003
+	EndIf
+Else
+	gaindecay+=(1-gaindecay)*0.003
+EndIf
+'If gaindecay>1.2 Then
+'	gainrevdecay=min(0.7,gainrevdecay+0.000001)
+'ElseIf gaindecay<1.1 Then 	
+'	gainrevdecay=max(0.0,gainrevdecay-0.000001)
+'EndIf
+If gaindecay>1.3 Then
+	'xback=xback*0.75+(gaindecay-0.75)*xrevdecay(idecay)
+	xback=xback*0.75+(gaindecay-0.75)*xrevdecay(irevdecay0)
+Else
+	Var k75=(gaindecay-1)/(1.3-1)
+	'xback=xback*gaindecay*(1-k75)+k75*(xback*0.75+(gaindecay-0.75)*xrevdecay(idecay))
+	xback=xback*gaindecay*(1-k75)+k75*(xback*0.75+(gaindecay-0.75)*xrevdecay(irevdecay0))
+EndIf
+'xdecayback=xback
+'xback*=gaindecay
+End Sub
+/'Sub subprocdecay0()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
 Var xback00=xback
@@ -1060,7 +1133,7 @@ Else
 EndIf
 'xdecayback=xback
 'xback*=gaindecay
-End Sub
+End Sub '/ 
 /'Sub subprocdecay_old()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
