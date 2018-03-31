@@ -995,9 +995,9 @@ Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
 Var xback00=xback
 'gainrevdecay=0.4
-irevdecay0=idecay-5000:If irevdecay0<1 Then irevdecay0+=ndecay
-irevdecay=idecay-5000-20000:If irevdecay<1 Then irevdecay+=ndecay
-irevdecay2=idecay-5000-28000:If irevdecay2<1 Then irevdecay2+=ndecay
+irevdecay0=idecay-9300:If irevdecay0<1 Then irevdecay0+=ndecay
+irevdecay=idecay-9300-20000-5000:If irevdecay<1 Then irevdecay+=ndecay
+irevdecay2=idecay-9300-28000-7000:If irevdecay2<1 Then irevdecay2+=ndecay
 'xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 xrevdecay(idecay)=xback
 xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
