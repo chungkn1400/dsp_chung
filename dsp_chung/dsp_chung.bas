@@ -22,7 +22,7 @@ Var retc=SetpriorityClass (hprocess, HIGH_PRIORITY_CLASS)
 
 Dim Shared As Integer winx,winy,windx,windy,file,i,j,k,n,p
 Dim Shared As Single gain,testgain=1
-Dim Shared As Single automod=0.5,lowmod=1,krevmod=1,treverba,treverbb,kreverba,kreverbb,decay
+Dim Shared As Single automod=0.5,lowmod=1,krevmod=1,treverba,treverbb,kreverba,kreverbb,decay,tdecay
 Dim Shared As Integer autovol=2,reverb=1,noisered=0,bypass=0,mono=0,remove50,antilarsen=1,icolor
 Dim Shared As String resp
 
@@ -73,6 +73,8 @@ testgain=1
 If Not Eof(file) Then Line Input #file,ficin:testgain=max(0.001,min(1.0,Val(ficin)))
 icolor=0
 If Not Eof(file) Then Line Input #file,ficin:icolor=Val(ficin)
+tdecay=100
+If Not Eof(file) Then Line Input #file,ficin:tdecay=Val(ficin)
 Close #file
 
 Dim Shared As Integer quit,restart,play,ttestloop
@@ -202,6 +204,12 @@ kreverbb=(i-1)*0.05
 setreverb()
 Sleep 200
 End Sub
+Sub subtdecay()
+Dim As Integer i
+getcomboindex("win.tdecay",i)
+tdecay=(i)*5
+Sleep 200
+End Sub
 Sub subbypass()
 If bypass=0 Then
 	bypass=1
@@ -311,8 +319,8 @@ edittext("win.msg","",@submsg,10,40,473,35,es_multiline+WS_VSCROLL)
 combobox("win.autovol",@subautovol,10,95,135,500)
 combobox("win.reverb",@subreverb0,10,125,87,500)
 button("win.plugins","plugins",@subplugins,10,155,67,22)
-checkbox("win.bypass","bypass",@subbypass,160,156,85,20)
-checkbox("win.mono","mono",@submono,160,170,85,20)
+checkbox("win.bypass","bypass",@subbypass,356,232,85,20)
+checkbox("win.mono","mono",@submono,356,251,85,20)
 checkbox("win.noise","noisered",@subnoise,10,230,85,20)
 checkbox("win.remove50","remove50hz",@subremove50,10,251,100,20)
 checkbox("win.antilarsen","antilarsen",@subantilarsen,120,230,85,20)
@@ -323,6 +331,7 @@ combobox("win.treverba",@subtreverba,160,95,90,500)
 combobox("win.kreverba",@subkreverba,160,125,90,500)
 combobox("win.treverbb",@subtreverbb,265,95,90,500)
 combobox("win.kreverbb",@subkreverbb,265,125,90,500)
+combobox("win.tdecay",@subtdecay,160,155,90,500)
 combobox("win.decay",@subdecay,265,155,90,500)
 combobox("win.automod",@subautomod,370,95,105,500)
 combobox("win.lowmod",@sublowmod,370,125,105,500)
@@ -445,6 +454,12 @@ Next
 i=Int(krevmod*100/5+0.01)
 selectcomboindex("win.krevmod",i)
 
+For i=1 To 40
+	addcombo("win.tdecay","tdecay"+Str((i)*5))
+Next
+i=Int(tdecay/5+0.01)
+selectcomboindex("win.tdecay",i)
+
 Dim Shared As hwnd winmsgh,winh
 winmsgh=getguih("win.msg")
 winh=getguih("win")
@@ -560,6 +575,7 @@ Print #file,remove50
 Print #file,antilarsen
 Print #file,testgain
 Print #file,icolor
+Print #file,tdecay
 Close #file
 
 guiclose()
@@ -996,8 +1012,8 @@ idecay+=1:If idecay>ndecay Then idecay=1
 Var xback00=xback
 'gainrevdecay=0.4
 irevdecay0=idecay-9300:If irevdecay0<1 Then irevdecay0+=ndecay
-irevdecay=idecay-9300-20000-5000:If irevdecay<1 Then irevdecay+=ndecay
-irevdecay2=idecay-9300-28000-7000:If irevdecay2<1 Then irevdecay2+=ndecay
+irevdecay=idecay-9300-(20000-5000)*0.01*tdecay:If irevdecay<1 Then irevdecay+=ndecay
+irevdecay2=idecay-9300-(28000-7000)*0.01*tdecay:If irevdecay2<1 Then irevdecay2+=ndecay
 'xrevdecay(idecay)=xback-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
 xrevdecay(idecay)=xback
 xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(irevdecay2)*0.37)
