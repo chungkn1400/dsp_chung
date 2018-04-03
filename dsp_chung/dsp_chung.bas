@@ -1067,7 +1067,7 @@ If didecay>100 Then
 	If xxdecay0<k1000 Then
 		k1000=2000
       gaindecay2=1
-      kdecay=max(0.0,kdecay-0.004)
+      kdecay=max(0.0,kdecay-0.001)
 	Else
 		k1000=1000
  	EndIf
