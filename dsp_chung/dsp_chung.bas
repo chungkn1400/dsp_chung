@@ -526,20 +526,22 @@ While quit=0
     	msg+="out="+Str(okout)
       msg+="/"+errtext
     EndIf
-    If Abs(auxvar)>0.000001 Then msg+="/aux="+Str(auxvar)
-    If Abs(auxvar2)>0.000001 Then msg+="/aux2="+Str(auxvar2)
-    If Abs(auxvar3)>0.000001 Then msg+="/aux3="+Str(auxvar3)
-    If Abs(auxvar4)>0.000001 Then msg+="/aux4="+Str(auxvar4)
+    If Abs(auxvar)>0.000001 Then msg+="/aux="+Left(Str(auxvar),6)
+    If Abs(auxvar2)>0.000001 Then msg+="/aux2="+Left(Str(auxvar2),6)
+    If Abs(auxvar3)>0.000001 Then msg+="/aux3="+Left(Str(auxvar3),6)
+    If Abs(auxvar4)>0.000001 Then msg+="/aux4="+Left(Str(auxvar4),6)
     printguih(winmsgh,msg)
     var vux=Int(55*level)
-    'vux=Int(55*Abs(levelout/32700))
-    If play=0 Then vux=1
+    Var vux2=Int(55*Abs(levelout/32700))
+    If play=0 Then vux=1:vux2=0
     If Abs(xback0)<0.001 Then
     	Line vuoutbuffer,(vux,0)-(55,15),RGB(250,250,250),bf
     Else 
-    	Line vuoutbuffer,(vux,0)-(55,15),RGB(195,195,195),bf
+    	Line vuoutbuffer,(vux,0)-(55,7),RGB(195,195,195),bf
+    	Line vuoutbuffer,(vux2,8)-(55,15),RGB(195,195,195),bf
     EndIf
-    Line vuoutbuffer,(0,0)-(vux,15),RGB(0,155,0),bf
+    Line vuoutbuffer,(0,0)-(vux,7),RGB(0,155,0),bf
+    Line vuoutbuffer,(0,8)-(vux2,15),RGB(0,155,0),bf
 	 guirefreshwindow("win")
    EndIf
    If ttestloop=199 Then 
@@ -775,8 +777,9 @@ If play=1 Then
     	xback=max(-32700.0,min(32700.0,xback*gain2))
     	If toutput=0 Then xback=0
     	xbackout=xback
-    	'levelout+=(Abs(xbackout)-levelout)*0.001
-    	'auxvar2=int(gain2*1000)/1000
+    	levelout+=(Abs(xbackout)-levelout)*0.001
+    	auxvar=Int(levelout*1000)/1000
+    	auxvar2=int(gain2*1000)/1000
     	pbuffer[k]=CShort(Int(xbackout))
     Next k
     If ttestloop=0 Then setautovol()
@@ -1021,7 +1024,7 @@ End Sub
 Const As Integer ndecay=1400000
 Dim Shared As Integer idecay,didecay,jdecay,irevdecay,irevdecay2,irevdecay0
 Dim Shared As double xdecay(ndecay),xxdecay,xydecay,peekdecay,gaindecay,gainrevdecay=0.5,xrevdecay(ndecay),xdecayback
-Dim Shared As Double timedecay,xxdecay0,k1000=1000,kdecay=1,xxdecay1
+Dim Shared As Double timedecay,xxdecay0,k1000=1000,kdecay=1,xxdecay1,kdecay1=1
 Sub subprocdecay()
 Dim As Integer i,j,k
 idecay+=1:If idecay>ndecay Then idecay=1
@@ -1036,7 +1039,8 @@ xrevdecay(irevdecay0)=xrevdecay(irevdecay0)-(xrevdecay(irevdecay)*0.4+xrevdecay(
 'xydecay+=(xdecayback-xydecay)*0.5
 xydecay+=(xback-xydecay)*0.5
 xxdecay0+=(Abs(xydecay)-xxdecay0)*0.001
-xxdecay1+=(max(kdecay*Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay1)*0.001
+kdecay1+=(kdecay-kdecay1)*0.008
+xxdecay1+=(max(kdecay1*Abs(xrevdecay(irevdecay0)),Abs(xydecay))-xxdecay1)*0.001
 xxdecay+=(xxdecay1-xxdecay)*0.003
 'xxdecay+=(Abs(xydecay)-xxdecay)*0.001
 'Var k100=100.0'max(100.0,Abs(xback)*0.01)
