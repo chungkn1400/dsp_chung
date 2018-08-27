@@ -21,6 +21,12 @@ Var hprocess=GetCurrentProcess()
 'SetpriorityClass (hprocess, ABOVE_NORMAL_PRIORITY_CLASS)
 Var retc=SetpriorityClass (hprocess, HIGH_PRIORITY_CLASS)
 
+Var ifont=guifont4,fontsize=14,italic=0
+setedittextfont(ifont,fontsize,italic)
+setstatictextfont(ifont,fontsize,italic)
+setlistboxfont(ifont,fontsize,italic)
+setbuttonfont(ifont,fontsize,italic)
+
 Dim Shared As Integer winx,winy,windx,windy,file,i,j,k,n,p
 Dim Shared As Single gain,testgain=1
 Dim Shared As Single automod=0.5,lowmod=1,krevmod=1,treverba,treverbb,kreverba,kreverbb,decay,tdecay,kkdecay
