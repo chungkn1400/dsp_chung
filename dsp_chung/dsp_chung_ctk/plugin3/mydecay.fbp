@@ -1,0 +1,33 @@
+[Project]
+Version=3
+Description=mydecay
+Api=fb (FreeBASIC)
+Grouping=1
+AddMainFiles=1
+AddModuleFiles=1
+ResExport=
+CompileIfNewer=0
+IncVersion=0
+RunCmd=0
+[Make]
+Current=1
+1=Windows dll,fbc -s gui -dll -export
+Recompile=2
+Module=Module Build,fbc -c
+Output=
+Run=
+Delete=
+[TabOrder]
+TabOrder=1,2
+[File]
+1=mydecay.bas
+2=gui_chung.bi
+3=
+[BreakPoint]
+1=
+2=
+3=
+[FileInfo]
+1=0,208,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2=0,63,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3=0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

@@ -1,0 +1,33 @@
+[Project]
+Version=3
+Description=mydecaytest
+Api=fb (FreeBASIC)
+Grouping=1
+AddMainFiles=1
+AddModuleFiles=1
+ResExport=
+CompileIfNewer=0
+IncVersion=0
+RunCmd=0
+[Make]
+Current=1
+1=Windows GUI,fbc -s gui
+Recompile=2
+Module=Module Build,fbc -c
+Output=
+Run=
+Delete=
+[TabOrder]
+TabOrder=1,2
+[File]
+1=mydecaytest.bas
+2=gui_chung.bi
+3=
+[BreakPoint]
+1=
+2=
+3=
+[FileInfo]
+1=0,5,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2=0,34,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3=0,10,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
