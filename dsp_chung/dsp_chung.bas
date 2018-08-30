@@ -1080,12 +1080,15 @@ Function revmod(x As Single)As Single
 	xrevmod(irevmod)=x-(xrevmod(irevmod0))*0.45*krevmod
 	Return xrevmod(irevmod)
 End Function
-Dim Shared As Single xnoise,xnoise0
+Dim Shared As Single xnoise,xnoise0,xnoise1
 Dim Shared As Double timenoise
 Sub noisereduce()
 If timenoise<1 Then timenoise=Timer
-xnoise+=(Abs(xback)-xnoise)*0.0002
-If xnoise<1900 And Abs(xback)<2800 Then
+xnoise1+=(xnoise0-xnoise1)*0.0073
+xnoise0+=(xback-xnoise0)*0.0073
+Var xbacknoise=xback-xnoise1
+xnoise+=(Abs(xbacknoise)-xnoise)*0.0002
+If xnoise<1200 And Abs(xbacknoise)<2400 Then
 'If xnoise<800 And Abs(xback)<2000 Then
 ''If xnoise<xnoise0 And Abs(xback)<2000 Then
 	'If Timer>timenoise+3 Then xback=0
