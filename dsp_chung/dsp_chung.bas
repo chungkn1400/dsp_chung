@@ -21,11 +21,20 @@ Var hprocess=GetCurrentProcess()
 'SetpriorityClass (hprocess, ABOVE_NORMAL_PRIORITY_CLASS)
 Var retc=SetpriorityClass (hprocess, HIGH_PRIORITY_CLASS)
 
-Var ifont=guifont4,fontsize=14,italic=0
-setedittextfont(ifont,fontsize,italic)
-setstatictextfont(ifont,fontsize,italic)
-setlistboxfont(ifont,fontsize,italic)
-setbuttonfont(ifont,fontsize,italic)
+Dim As Hdc myhdc=getdc(0)
+Dim As size mysize   
+GetTextExtentPoint32A(myhdc,@"H",1,@mysize)
+Var hf=mysize.cy
+'guinotice Str(hf)
+deletedc(myhdc)
+If hf<>16 Then
+	guifontweight=600'bold
+   Var ifont=guifont4,fontsize=14,italic=0
+   setedittextfont(ifont,fontsize,italic)
+   setstatictextfont(ifont,fontsize,italic)
+   setlistboxfont(ifont,fontsize,italic)
+   setbuttonfont(ifont,fontsize,italic)
+EndIf 
 
 Dim Shared As Integer winx,winy,windx,windy,file,i,j,k,n,p
 Dim Shared As Single gain,testgain=1
@@ -1076,8 +1085,9 @@ Dim Shared As Double timenoise
 Sub noisereduce()
 If timenoise<1 Then timenoise=Timer
 xnoise+=(Abs(xback)-xnoise)*0.0002
-If xnoise<800 And Abs(xback)<2000 Then
-'If xnoise<xnoise0 And Abs(xback)<2000 Then
+If xnoise<1900 And Abs(xback)<2800 Then
+'If xnoise<800 And Abs(xback)<2000 Then
+''If xnoise<xnoise0 And Abs(xback)<2000 Then
 	'If Timer>timenoise+3 Then xback=0
 	If Timer>timenoise+2 Then xback=0
 Else 	
@@ -1694,7 +1704,7 @@ End Sub
 Dim Shared As Single xlow(9),xxlow(9),yxlow(9),yxxlow(9)
 Sub removelow()
 Dim As Integer i
-Var i2=4,kx=0.0033
+Var i2=4,kx=0.0033'*1.2
 If iback And 1 Then
 	For i=i2 To 1 Step -1
 		xlow(i)+=(xxlow(i-1)-xlow(i))*kx'0.002'88hz

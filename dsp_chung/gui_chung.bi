@@ -459,7 +459,8 @@ End Sub
 Sub guirefreshcontrol(Byref controlname As String)
 	guirefreshcontrolh(getguih(controlname))
 End Sub
-Function guifont(ByVal fontnum As uint,ByVal size As uint = 0,ByVal italic As Byte = FALSE,ByVal weight As uint=600) As hfont
+Dim Shared As Integer guifontweight=600
+Function guifont(ByVal fontnum As uint,ByVal size As uint = 0,ByVal italic As Byte = FALSE) As hfont
 Dim As hfont hfont,myhfont
 hfont=NULL:myhfont=NULL  
 If fontnum=ANSI_FIXED_FONT Or _' Windows fixed-pitch (monospace) system font.
@@ -476,7 +477,7 @@ If fontnum=ANSI_FIXED_FONT Or _' Windows fixed-pitch (monospace) system font.
       GetObject ( hfont, sizeof(LOGFONT), @mylogfont )
       If size<>0 Then mylogfont.lfHeight=-size
       If size<>0 Then mylogfont.lfWidth=Int(size*0.4)
-      mylogfont.lfWeight=weight
+      mylogfont.lfWeight=guifontweight
       mylogfont.lfItalic=italic 
       myhfont = CreateFontIndirect ( @mylogfont )
       deleteobject(hfont)
