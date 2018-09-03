@@ -1209,7 +1209,11 @@ kxback=max(0.05,min(1.0,avgxdecay*0.001))
 'Else
 	avggaindecay=avggaindecay0
 'EndIf
-avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.1
+If avgxdecay<1000 Then
+	avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.02
+Else 
+	avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.1
+EndIf
 'If avggaindecay<1 Then xback*=avggaindecay*avggaindecay
 auxvar4=avggaindecay0
 auxvar2=Int(avgxdecay)
