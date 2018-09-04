@@ -95,7 +95,129 @@ kkdecay=0.77
 If Not Eof(file) Then Line Input #file,ficin:kkdecay=Val(ficin)
 Close #file
 
+Sub load(fic As String)
+Dim As Integer file
+Dim As String ficin
+Var testgain0=testgain
+file=FreeFile
+Open fic For Input As #file
+'winx=10:winy=10
+'If Not Eof(file) Then Line Input #file,ficin:winx=Val(ficin)
+'If Not Eof(file) Then Line Input #file,ficin:winy=Val(ficin)
+'mydev=-1
+'If Not Eof(file) Then Line Input #file,ficin:mydev=Val(ficin)
+'mydevout=-1
+'If Not Eof(file) Then Line Input #file,ficin:mydevout=Val(ficin)
+gain=1
+If Not Eof(file) Then Line Input #file,ficin:gain=Val(ficin)
+buffersize=400
+If Not Eof(file) Then Line Input #file,ficin:buffersize=Val(ficin)
+autovol=2
+If Not Eof(file) Then Line Input #file,ficin:autovol=Val(ficin)
+reverb=1
+If Not Eof(file) Then Line Input #file,ficin:reverb=Val(ficin)
+treverba=200
+If Not Eof(file) Then Line Input #file,ficin:treverba=Val(ficin)
+kreverba=0.1
+If Not Eof(file) Then Line Input #file,ficin:kreverba=Val(ficin)
+treverbb=250
+If Not Eof(file) Then Line Input #file,ficin:treverbb=Val(ficin)
+kreverbb=0.1
+If Not Eof(file) Then Line Input #file,ficin:kreverbb=Val(ficin)
+automod=0.5
+If Not Eof(file) Then Line Input #file,ficin:automod=Val(ficin)
+lowmod=1
+If Not Eof(file) Then Line Input #file,ficin:lowmod=Val(ficin)
+krevmod=1
+If Not Eof(file) Then Line Input #file,ficin:krevmod=Val(ficin)
+decay=1
+If Not Eof(file) Then Line Input #file,ficin:decay=max(1.0,min(4.0,Val(ficin)))
+mono=0
+If Not Eof(file) Then Line Input #file,ficin:mono=Val(ficin)
+noisered=0
+If Not Eof(file) Then Line Input #file,ficin:noisered=Val(ficin)
+remove50=0
+If Not Eof(file) Then Line Input #file,ficin:remove50=Val(ficin)
+antilarsen=0
+If Not Eof(file) Then Line Input #file,ficin:antilarsen=Val(ficin)
+testgain=1
+If Not Eof(file) Then Line Input #file,ficin:testgain=max(0.001,min(1.0,Val(ficin)))
+icolor=0
+If Not Eof(file) Then Line Input #file,ficin:icolor=Val(ficin)
+tdecay=100
+If Not Eof(file) Then Line Input #file,ficin:tdecay=Val(ficin)
+kkdecay=0.77
+If Not Eof(file) Then Line Input #file,ficin:kkdecay=Val(ficin)
+Close #file	
+testgain=testgain0
+End Sub
+Sub save(fic As String)
+Dim As Integer file	
+file=freefile
+Open fic For Output As #file
+'Print #file,winx
+'Print #file,winy
+'Print #file,mydev
+'Print #file,mydevout
+Print #file,gain
+Print #file,buffersize
+Print #file,autovol
+Print #file,reverb
+Print #file,treverba
+Print #file,kreverba
+Print #file,treverbb
+Print #file,kreverbb
+Print #file,automod
+Print #file,lowmod
+Print #file,krevmod
+Print #file,decay
+Print #file,mono
+Print #file,noisered
+Print #file,remove50
+Print #file,antilarsen
+Print #file,testgain
+Print #file,icolor
+Print #file,tdecay
+Print #file,kkdecay
+Close #file	
+End Sub
 Dim Shared As Integer quit,restart,play,ttestloop
+Sub subsave
+Dim As String fic,dir0
+Dim As Integer ret 
+dir0=CurDir  
+ChDir(ExePath+"\save\")  
+fic=filedialog("save",ExePath+"\save\*.dspchung")
+fic=Trim(fic)
+ChDir(dir0)
+If InStr(fic,".")=0 And fic<>"" Then fic=fic+".dspchung"
+If Right(fic,9)=".dspchung" Then 
+	confirm("save in "+fic+" ?","confirm",resp)
+	If resp="yes" Then
+		save(fic)
+	EndIf
+EndIf
+ret=ChDir(dir0)
+guisetfocus("win.msg")
+End Sub
+Sub subload
+Dim As String fic,dir0
+Dim As Integer ret 
+dir0=CurDir
+ChDir(ExePath+"\save\")  
+fic=filedialog("load",ExePath+"\save\*.dspchung")
+fic=Trim(fic)
+ret=ChDir(dir0)
+If Right(fic,9)=".dspchung" Then 
+	If FileExists(fic) Then
+		load(fic)
+		quit=1:restart=2
+		guinotice "ok"
+	EndIf
+EndIf
+ret=ChDir(dir0)
+guisetfocus("win.msg")
+End Sub
 Sub subquit
 	quit=1
 End Sub
@@ -368,6 +490,8 @@ combobox("win.automod",@subautomod,370,95,105,500)
 combobox("win.lowmod",@sublowmod,370,125,105,500)
 combobox("win.krevmod",@subkrevmod,370,155,105,500)
 button("win.play","play",@subplay,10,195,60,24)
+button("win.save","save",@subsave,448,234,38,17)
+button("win.load","load",@subload,448,253,38,17)
 openwindow("win","dsp_chung",winx,winy,500,310) 
 
 trapclose("win",@subquit)
@@ -759,6 +883,7 @@ End Sub
 Declare Sub Myprocback()
 Declare Sub setautovol()
 declare sub procspeed()
+Declare Sub removelow2()
 Dim Shared As Single xback,xbackold,xbackold0,speed=1,gain2=1,avggain=1,avgxback=1,avgxback0=1
 Dim Shared As Single xback00,xback01,dxback00,dxback01
 Dim Shared As Double avggaindecay
@@ -845,8 +970,10 @@ If play=1 Then
     	If toutput=99 Then gain2=gain
     	levelout0+=(min(32700.0,Abs(xback))-levelout0)*0.001
     	xback=max(-32700.0,min(32700.0,xback*gain2))
+		'removelow2()
     	If toutput=0 Then xback=0
-    	xbackout=xback
+    	xbackout=max(-32700.0,min(32700.0,xback))
+    	'xbackout=xback
     	levelout+=(Abs(xbackout)-levelout)*0.001
     	auxvar=Int(levelout*1000)/1000
     	'auxvar2=int(gain2*1000)/1000
@@ -1728,6 +1855,28 @@ Else
 	yxlow(0)+=(xback-yxlow(0))*kx'*0.5'0.002'88hz
 	yxxlow(0)=xback-yxlow(0)
 	xback=yxxlow(i2)
+EndIf
+End Sub
+Dim Shared As Single xlow2(9),xxlow2(9),yxlow2(9),yxxlow2(9)
+Sub removelow2()
+Dim As Integer i
+Var i2=1,kx=0.0033'*1.2
+If iback And 1 Then
+	For i=i2 To 1 Step -1
+		xlow2(i)+=(xxlow2(i-1)-xlow2(i))*kx'0.002'88hz
+		xxlow2(i)=xxlow2(i-1)-xlow2(i)
+	Next
+	xlow2(0)+=(xback-xlow2(0))*kx'*0.5'0.002'88hz
+	xxlow2(0)=xback-xlow2(0)
+	xback=xxlow2(i2)
+Else
+	For i=i2 To 1 Step -1
+		yxlow2(i)+=(yxxlow2(i-1)-yxlow2(i))*kx'0.002'88hz
+		yxxlow2(i)=yxxlow2(i-1)-yxlow2(i)
+	Next
+	yxlow2(0)+=(xback-yxlow2(0))*kx'*0.5'0.002'88hz
+	yxxlow2(0)=xback-yxlow2(0)
+	xback=yxxlow2(i2)
 EndIf
 End Sub
 Dim Shared As Single xbacklow,f50hzold
