@@ -1322,13 +1322,23 @@ avgxdecay2+=(avgxdecay1*0.985-avgxdecay2)*0.001*max(1.0,3-avggaindecay2)
 avgxdecay+=(avgxdecay1+50-25-avgxdecay)*0.002*2
 avgxdecay1+=(Abs(xback)-avgxdecay1)*0.003
 avgx100+=(max(100.0,avgxdecay*0.05+80)-avgx100)*0.03'0.1
-If avgxdecay2<avgxdecay Then
+If testgain<0.141 Then 
+ If avgxdecay2<avgxdecay Then
 	avggaindecay0+=(avgx100/(avgx100+avgxdecay-avgxdecay2)-avggaindecay0)*0.02
 	avggaindecay0=max(avggaindecay0,0.8)'0.85)
-Else 	
+ Else 	
 	avggaindecay0+=((avgx100+avgxdecay2-avgxdecay)/avgx100-avggaindecay0)*0.01
 	avggaindecay0=min(avggaindecay0,1.96)
-EndIf
+ EndIf
+Else
+ If avgxdecay2<avgxdecay Then
+	avggaindecay0+=(avgx100/(avgx100+avgxdecay-avgxdecay2)-avggaindecay0)*0.02
+	avggaindecay0=max(avggaindecay0,0.85)
+ Else 	
+	avggaindecay0+=((avgx100+avgxdecay2-avgxdecay)/avgx100-avggaindecay0)*0.01
+	avggaindecay0=min(avggaindecay0,1.99)
+ EndIf
+EndIf 
 kxback=max(0.05,min(1.0,avgxdecay*0.001))
 'kkdecay100=19*0.07/(1.06-kkdecay)
 'If avggaindecay0>1 Then
