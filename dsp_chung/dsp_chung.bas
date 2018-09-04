@@ -1197,7 +1197,7 @@ avgxdecay1+=(Abs(xback)-avgxdecay1)*0.003
 avgx100+=(max(100.0,avgxdecay*0.05+80)-avgx100)*0.03'0.1
 If avgxdecay2<avgxdecay Then
 	avggaindecay0+=(avgx100/(avgx100+avgxdecay-avgxdecay2)-avggaindecay0)*0.02
-	avggaindecay0=max(avggaindecay0,0.85)
+	avggaindecay0=max(avggaindecay0,0.8)'0.85)
 Else 	
 	avggaindecay0+=((avgx100+avgxdecay2-avgxdecay)/avgx100-avggaindecay0)*0.01
 	avggaindecay0=min(avggaindecay0,1.96)
@@ -1209,11 +1209,11 @@ kxback=max(0.05,min(1.0,avgxdecay*0.001))
 'Else
 	avggaindecay=avggaindecay0
 'EndIf
-If avgxdecay<1000 Then
-	avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.02
-Else 
+'If avgxdecay<1000 Then
+'	avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.02
+'Else 
 	avggaindecay2+=(min(2.0,avggaindecay*0.6)-avggaindecay2)*0.1
-EndIf
+'EndIf
 'If avggaindecay<1 Then xback*=avggaindecay*avggaindecay
 auxvar4=avggaindecay0
 auxvar2=Int(avgxdecay)
