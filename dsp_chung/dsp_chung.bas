@@ -1330,7 +1330,7 @@ If testgain<0.141 Then
 	avggaindecay0+=((avgx100+avgxdecay2-avgxdecay)/avgx100-avggaindecay0)*0.01
 	avggaindecay0=min(avggaindecay0,1.96)
  EndIf
-ElseIf testgain<0.282 Then 
+ElseIf testgain<0.6 Then 
  If avgxdecay2<avgxdecay Then
 	avggaindecay0+=(avgx100/(avgx100+avgxdecay-avgxdecay2)-avggaindecay0)*0.02
 	avggaindecay0=max(avggaindecay0,0.85)
